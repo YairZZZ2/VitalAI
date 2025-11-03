@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "398628925673",
+    "project_id": "vitalai-ceb5c",
+    "storage_bucket": "vitalai-ceb5c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:398628925673:android:f1ad9b6e35c545fb700078",
+        "android_client_info": {
+          "package_name": "com.example.mi_primer_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCljNh-rJEw8b7xrl4XY7btvVR4JBYEdQw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:398628925673:android:e25686fd1b443f58700078",
+        "android_client_info": {
+          "package_name": "com.vitalai.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCljNh-rJEw8b7xrl4XY7btvVR4JBYEdQw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

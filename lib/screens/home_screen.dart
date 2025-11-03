@@ -1,8 +1,53 @@
 import 'package:flutter/material.dart';
-import '../services/bluetooth_service.dart'; // Asegúrate de tener este archivo creado
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
+  // 🔒 Contraseña exclusiva para encargados del monitor
+  final String _claveMonitor = "claveSegura123";
+
+  // 🔹 Función para pedir la clave antes de entrar al monitor
+  Future<void> _pedirClaveYEntrar(BuildContext context) async {
+    String? claveIngresada = '';
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Acceso restringido"),
+          content: TextField(
+            obscureText: true,
+            onChanged: (value) => claveIngresada = value,
+            decoration: const InputDecoration(
+              hintText: "Ingresa la contraseña de encargado",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, claveIngresada),
+              child: const Text("Aceptar"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: const Text("Cancelar"),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 🔍 Validar la clave ingresada
+    if (result != null && result == _claveMonitor) {
+      Navigator.pushNamed(context, '/monitor');
+    } else if (result != null && result.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Contraseña incorrecta ❌"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +69,10 @@ class HomeScreen extends StatelessWidget {
             _buildCard(context, Icons.bloodtype, "Oxígeno", '/oxigeno'),
             _buildCard(context, Icons.sentiment_satisfied, "Estrés", '/estres'),
             _buildCard(context, Icons.person, "Formulario", '/formulario'),
-            // 🔹 Nuevo botón de prueba Bluetooth
             _buildBluetoothTestCard(context),
+
+            // 🔹 Nuevo botón para el monitor (con contraseña)
+            _buildMonitorCard(context),
           ],
         ),
       ),
@@ -56,25 +103,11 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Nueva función para el card de prueba de Bluetooth
+  // 🔹 Card para pruebas de Bluetooth
   Widget _buildBluetoothTestCard(BuildContext context) {
     return InkWell(
-      onTap: () async {
-        try {
-          final bluetooth = BluetoothService();
-            bluetooth.scanForDevices().listen((results) {
-              for (var r in results) {
-                print('📡 Dispositivo: ${r.device.platformName} (${r.device.remoteId})');
-              }
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Escaneando dispositivos Bluetooth...')),
-          );
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
-        }
+      onTap: () {
+        Navigator.pushNamed(context, '/bluetooth_test');
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -86,7 +119,34 @@ class HomeScreen extends StatelessWidget {
               Icon(Icons.bluetooth, size: 50, color: Theme.of(context).primaryColor),
               const SizedBox(height: 10),
               const Text(
-                "Probar Bluetooth",
+                "Pruebas Bluetooth",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 🔹 Card para el monitor con contraseña
+  Widget _buildMonitorCard(BuildContext context) {
+    return InkWell(
+      onTap: () => _pedirClaveYEntrar(context),
+      child: Card(
+        color: const Color(0xFFEDE7F6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 5,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.monitor_heart_outlined,
+                  size: 50, color: Theme.of(context).primaryColor),
+              const SizedBox(height: 10),
+              const Text(
+                "Monitor de Donantes",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
