@@ -4,7 +4,7 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   // 🔒 Contraseña exclusiva para encargados del monitor
-  final String _claveMonitor = "claveSegura123";
+  static const String _claveMonitor = "VitalAI2025";
 
   // 🔹 Función para pedir la clave antes de entrar al monitor
   Future<void> _pedirClaveYEntrar(BuildContext context) async {
