@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Usamos Bluetooth para conectar monitores de salud y leer datos (presión, pulso, oxígeno).</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Conecta con dispositivos BLE para leer valores de salud.</string>
+	<!-- Si usas localización: -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Necesitamos ubicación para detectar algunos dispositivos BLE.</string>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

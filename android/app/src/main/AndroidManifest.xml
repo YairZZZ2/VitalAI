@@ -1,12 +1,36 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- ✅ Permisos: deben ir aquí, fuera del <application> -->
+    <!-- 🔵 Permisos BLE y ubicación (Android 12+) -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- IMPORTANTE -->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+
+    <!-- 🔵 SOLO UN QUERIES (unificados) -->
+    <queries>
+        <!-- Necesarios para BLE -->
+        <intent>
+            <action android:name="android.bluetooth.le.ScanCallback" />
+        </intent>
+        <intent>
+            <action android:name="android.bluetooth.adapter.action.REQUEST_ENABLE" />
+        </intent>
+
+        <!-- Necesario para process_text -->
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
 
     <application
         android:usesCleartextTraffic="true"
@@ -35,20 +59,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
     </application>
-
-    <!-- Required to query activities that can process text -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT" />
-            <data android:mimeType="text/plain" />
-        </intent>
-    </queries>
 
 </manifest>

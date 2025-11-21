@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
 class EstresScreen extends StatelessWidget {
   const EstresScreen({super.key});
@@ -9,7 +8,7 @@ class EstresScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Medir Estrés"),
-        backgroundColor: AppTheme.primaryColor,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -43,7 +42,7 @@ class EstresScreen extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: Theme.of(context).primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
