@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
         '/sueno': (context) => const SuenoScreen(),
         '/oxigeno': (context) => const OxigenoScreen(),
         '/estres': (context) => const EstresScreen(),
-        '/formulario': (context) => const FormularioScreen(),
+        '/formulario': (context) => DonacionWizardScreen(),
         '/bluetooth_test': (context) => const BluetoothTestScreen(),
         '/monitor': (context) => const MonitorScreen(),
       },
