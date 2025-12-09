@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DonacionWizardScreen extends StatefulWidget {
-  const DonacionWizardScreen({Key? key}) : super(key: key);
+  const DonacionWizardScreen({super.key});
 
   @override
   State<DonacionWizardScreen> createState() => _DonacionWizardScreenState();
@@ -15,17 +16,17 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
   final TextEditingController apPaternoCtrl = TextEditingController();
   final TextEditingController apMaternoCtrl = TextEditingController();
   final TextEditingController nombresCtrl = TextEditingController();
-  final TextEditingController curpCtrl = TextEditingController();
   final TextEditingController edadCtrl = TextEditingController();
   final TextEditingController pesoCtrl = TextEditingController();
   final TextEditingController alturaCtrl = TextEditingController(); // <- altura añadida
   String sexo = "Masculino";
-  final TextEditingController telefonoCtrl = TextEditingController();
-  final TextEditingController correoCtrl = TextEditingController();
 
   // ---------- CONTROLLERS / FLAGS: CLÍNICA (tu formulario original) ----------
+// ---- Controladores separados ----
+  final TextEditingController drogasController = TextEditingController();
   final TextEditingController tratamientoController = TextEditingController();
   final TextEditingController oncologiaController = TextEditingController();
+  final TextEditingController carcinomaController = TextEditingController();
 
   bool covid19 = false;
   bool tMedico = false;
@@ -39,8 +40,20 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
   bool relaciones = false;
   bool drogas = false;
   bool alcohol = false;
-  bool embarazadaOLactando = false;
+  bool menstruando = false;
+  bool embarazada = false;
+  bool lactando = false;
+  bool parir = false;
+  bool carcinomaAlta = false;
   bool desayuno = true;
+  bool donacionReciente = false;
+  bool viajesRiesgo = false;
+  bool enfermedadesGraves = false;
+  bool transfusionReciente = false;
+  bool anticoagulantes = false;
+  bool teratogenicos = false;
+  bool vacunasRecientes = false;
+  bool estadoActual = true;
 
   // Resultado (se muestra en la 3ra pantalla y también vía AlertDialog)
   String resultadoTexto = "";
@@ -100,22 +113,60 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
         relaciones ||
         drogas ||
         alcohol ||
-        !desayuno) {
+        !desayuno ||
+        donacionReciente ||
+        viajesRiesgo ||
+        enfermedadesGraves ||
+        transfusionReciente ||
+        anticoagulantes ||
+        teratogenicos ||
+        vacunasRecientes ||
+        parir ||
+        lactando ||
+        !estadoActual) {
       _mostrarResultadoDialog(false, "🚫 Lo sentimos mucho, pero usted no es apto/a para donar sangre debido a sus respuestas en el cuestionario.");
       setState(() => resultadoTexto = "No apto por cuestionario clínico.");
       return;
     }
 
     // Condición específica para mujeres
-    if (sexo == "Femenino" && embarazadaOLactando) {
+    if (sexo == "Femenino" && embarazada || lactando) {
       _mostrarResultadoDialog(false, "🤰 Lo sentimos, pero no puedes donar si estás embarazada o en periodo de lactancia.");
-      setState(() => resultadoTexto = "No apto por embarazo / lactancia.");
+      setState(() => resultadoTexto = "No apta por embarazo / lactancia.");
+      return;
+    }
+
+    if(sexo == "Femenino" && parir) {
+      _mostrarResultadoDialog(false, "🤱🏼Se requiere un mínimo de 6 meses después del parto para asegurar su recuperación.");
+      setState(() => resultadoTexto = "No apta por parto reciente.");
       return;
     }
 
     // Si pasa todas las validaciones:
     _mostrarResultadoDialog(true, "🎉 ¡Felicidades, eres apto/a para donar sangre! 🩸\n\nEn seguida colocaremos una banda en tu brazo para monitorear tus signos vitales mientras realizamos el proceso de donación. 🙏 Gracias por tu noble gesto.");
     setState(() => resultadoTexto = "Apto para donar.");
+  }
+
+  // ---------- FIRESTORE: GUARDAR DATOS ----------
+  Future<void> guardarDatosEnFirebase() async {
+    try {
+      await FirebaseFirestore.instance.collection('donaciones').add({
+        "apellido_paterno": apPaternoCtrl.text.trim(),
+        "apellido_materno": apMaternoCtrl.text.trim(),
+        "nombre": nombresCtrl.text.trim(),
+        "edad": int.tryParse(edadCtrl.text),
+        "peso": double.tryParse(pesoCtrl.text),
+        "altura": double.tryParse(alturaCtrl.text),
+        "sexo": sexo,
+        "fecha": Timestamp.now(),
+      });
+      // opcional: feedback corto
+      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Datos guardados.")));
+    } catch (e) {
+      // imprime el error para debug
+      print("Error al guardar datos en Firestore: $e");
+      // opcional: puedes mostrar un SnackBar de error si quieres
+    }
   }
 
   void _mostrarResultadoDialog(bool apto, String mensaje) {
@@ -162,12 +213,9 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
     apPaternoCtrl.dispose();
     apMaternoCtrl.dispose();
     nombresCtrl.dispose();
-    curpCtrl.dispose();
     edadCtrl.dispose();
     pesoCtrl.dispose();
     alturaCtrl.dispose();
-    telefonoCtrl.dispose();
-    correoCtrl.dispose();
     tratamientoController.dispose();
     oncologiaController.dispose();
     super.dispose();
@@ -202,7 +250,6 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                       _campoTexto(apPaternoCtrl, "Apellido paterno"),
                       _campoTexto(apMaternoCtrl, "Apellido materno"),
                       _campoTexto(nombresCtrl, "Nombre(s)"),
-                      _campoTexto(curpCtrl, "CURP"),
                       Row(
                         children: [
                           Expanded(child: _campoTexto(edadCtrl, "Edad", keyboard: TextInputType.number)),
@@ -244,10 +291,6 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      _campoTexto(telefonoCtrl, "Teléfono", keyboard: TextInputType.phone),
-                      _campoTexto(correoCtrl, "Correo electrónico", keyboard: TextInputType.emailAddress),
-
-                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -262,8 +305,8 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9C27B0)),
                             onPressed: () {
                               // Opcional: validar campos personales mínimos antes de avanzar
-                              if (nombresCtrl.text.trim().isEmpty || curpCtrl.text.trim().isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Completa al menos nombre y CURP para continuar.")));
+                              if (nombresCtrl.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Completa los campos para continuar.")));
                                 return;
                               }
                               _nextPage();
@@ -282,70 +325,125 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _seccionTitulo("Cuestionario de salud"),
-                      if (sexo == "Femenino")
-                        SwitchListTile(
-                          title: const Text("¿Estás embarazada o lactando?"),
-                          value: embarazadaOLactando,
-                          onChanged: (v) => setState(() => embarazadaOLactando = v),
-                        ),
-                      SwitchListTile(
-                        title: const Text("Has sido diagnosticado con COVID-19 en los últimos 28 días?"),
-                        value: covid19,
-                        onChanged: (v) => setState(() => covid19 = v),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SwitchListTile(
-                            title: const Text("¿Estás en tratamiento médico o tomas alguna medicación?"),
-                            value: tMedico,
-                            onChanged: (v) {
-                              setState(() {
-                                tMedico = v;
-                                if (!tMedico) tratamientoController.clear();
-                              });
-                            },
-                          ),
-                          if (tMedico) _campoTexto(tratamientoController, "¿Qué tipo de tratamiento o medicina tomas?"),
-                        ],
-                      ),
-                      SwitchListTile(
-                        title: const Text("¿Has tenido Hepatitis tipo C o B alguna vez o recientemente?"),
-                        value: hepatitis,
-                        onChanged: (v) => setState(() => hepatitis = v),
-                      ),
-                      SwitchListTile(
-                        title: const Text("¿Has sido diagnosticado de hemofilia?"),
-                        value: hemofilia,
-                        onChanged: (v) => setState(() => hemofilia = v),
-                      ),
-                      SwitchListTile(
-                        title: const Text("¿Eres portador/a de anticuerpos frente al VIH o enfermo/a de sida?"),
-                        value: sida,
-                        onChanged: (v) => setState(() => sida = v),
-                      ),
-                      const SizedBox(height: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SwitchListTile(
-                            title: const Text("¿Has padecido de algún proceso oncológico a lo largo de tu vida?"),
-                            value: oncologia,
-                            onChanged: (v) {
-                              setState(() {
-                                oncologia = v;
-                                if (!oncologia) oncologiaController.clear();
-                              });
-                            },
-                          ),
-                          if (oncologia)
+                      // ------------------ PÁGINA 2: DATOS CLÍNICOS / CUESTIONARIO ------------------
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _seccionTitulo("Cuestionario de salud"),
+
+                            // Ejemplo de integración de nuevas preguntas:
                             SwitchListTile(
-                              title: const Text("El cáncer que tuviste, ¿fue un carcinoma in situ de cuello de útero o un carcinoma localizado de piel (basobascular/escamoso)? ¿Te han dado de alta?"),
-                              value: carcinoma,
-                              onChanged: (v) => setState(() => carcinoma = v),
+                              title: const Text("¿Ha sido diagnosticado/a con Hepatitis B, Hepatitis C o VIH/SIDA?"),
+                              value: hepatitis || sida, // puedes usar variables separadas si prefieres
+                              onChanged: (v) => setState(() {
+                                hepatitis = v;
+                                sida = v;
+                              }),
                             ),
-                        ],
+
+                            SwitchListTile(
+                              title: const Text("¿Ha sido diagnosticado/a con COVID-19 con síntomas en los últimos 28 días?"),
+                              value: covid19,
+                              onChanged: (v) => setState(() => covid19 = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Ha sido diagnosticado/a de Hemofilia o trastorno grave de coagulación?"),
+                              value: hemofilia,
+                              onChanged: (v) => setState(() => hemofilia = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Alguna vez ha sido diagnosticado/a con cáncer (excepto basocelular)?"),
+                              value: oncologia,
+                              onChanged: (v) => setState(() => oncologia = v),
+                            ),
+
+                            if (sexo == "Femenino")
+                              SwitchListTile(
+                                title: const Text("¿Está embarazada o cree que podría estarlo?"),
+                                value: embarazada,
+                                onChanged: (v) => setState(() => embarazada = v),
+                              ),
+
+                            if (sexo == "Femenino")
+                              SwitchListTile(
+                                title: const Text("¿Ha dado a luz en los últimos 6 meses?"),
+                                value: parir, // crea una variable bool específica si quieres guardar
+                                onChanged: (v) => setState(() => parir = v),
+                              ),
+
+                            if (sexo == "Femenino")
+                              SwitchListTile(
+                                title: const Text("¿Se encuentra actualmente en período de lactancia?"),
+                                value: lactando,
+                                onChanged: (v) => setState(() => lactando = v),
+                              ),
+                            
+                            if (sexo == "Femenino")
+                              SwitchListTile(
+                                title: const Text("¿Se siente débil, mareada o con menstruación abundante?"),
+                                value: menstruando,
+                                onChanged: (v) => setState(() => menstruando = v),
+                              ),
+
+                            SwitchListTile(
+                              title: const Text("¿Ha ingerido suficientes líquidos en las últimas 4 horas?"),
+                              value: desayuno, // ya tienes esta variable, puedes renombrar si quieres
+                              onChanged: (v) => setState(() => desayuno = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Ha donado sangre en los últimos 4 meses?"),
+                              value: donacionReciente, // crea variable bool donacionReciente
+                              onChanged: (v) => setState(() => donacionReciente = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Ha viajado o vivido en zona de riesgo (Malaria, Zika, Chagas) en los últimos 4 meses?"),
+                              value: viajesRiesgo, // crea variable bool viajesRiesgo
+                              onChanged: (v) => setState(() => viajesRiesgo = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Tiene o ha tenido Hemofilia, Lupus, Esclerosis Múltiple, enfermedad grave del corazón o pulmones?"),
+                              value: enfermedadesGraves, // crea variable bool enfermedadesGraves
+                              onChanged: (v) => setState(() => enfermedadesGraves = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Ha recibido una transfusión de sangre en los últimos 4-6 meses?"),
+                              value: transfusionReciente, // crea variable bool transfusionReciente
+                              onChanged: (v) => setState(() => transfusionReciente = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Está tomando medicamentos que afectan la coagulación?"),
+                              value: anticoagulantes, // crea variable bool anticoagulantes
+                              onChanged: (v) => setState(() => anticoagulantes = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Ha tomado medicamentos para acné o psoriasis (Isotretinoína, Etretinato)?"),
+                              value: teratogenicos, // crea variable bool teratogenicos
+                              onChanged: (v) => setState(() => teratogenicos = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Ha recibido vacunas de virus vivos atenuados en las últimas 4 semanas?"),
+                              value: vacunasRecientes, // crea variable bool vacunasRecientes
+                              onChanged: (v) => setState(() => vacunasRecientes = v),
+                            ),
+
+                            SwitchListTile(
+                              title: const Text("¿Se siente usted bien, descansado/a y capaz de completar la donación en este momento?"),
+                              value: estadoActual, // crea variable bool estadoActual
+                              onChanged: (v) => setState(() => estadoActual = v),
+                            ),
+                          ],
+                        ),
                       ),
                       SwitchListTile(
                         title: const Text("¿Te hiciste tatuajes en los últimos 4 meses?"),
@@ -371,7 +469,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                             onChanged: (v) {
                               setState(() {
                                 drogas = v;
-                                if (!drogas) tratamientoController.clear();
+                                if (!drogas) drogasController.clear();
                               });
                             },
                           ),
@@ -443,6 +541,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9C27B0), padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
                           onPressed: () {
                             evaluarElegibilidad();
+                            guardarDatosEnFirebase();
                           },
                           child: const Text("Evaluar elegibilidad", style: TextStyle(fontSize: 16, color: Colors.white)),
                         ),
@@ -461,8 +560,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                           OutlinedButton(onPressed: _previousPage, child: const Text("Atrás")),
                           TextButton(
                             onPressed: () {
-                              // reiniciar formulario si quieres
-                              Navigator.pop(context);
+                              Navigator.of(context, rootNavigator: true).pushNamed('/signos');
                             },
                             child: const Text("Finalizar"),
                           ),

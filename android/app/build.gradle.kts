@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.mi_primer_app"
-        minSdk = flutter.minSdkVersion
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -39,4 +39,5 @@ flutter {
 
 dependencies {
     // Firebase depende del google-services
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha04")
 }

@@ -18,9 +18,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _error = '';
 
   Future<void> _register() async {
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
       setState(() => _error = "Completa todos los campos.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setState(() => _error = "La contraseña debe tener mínimo 6 caracteres.");
       return;
     }
 
@@ -30,23 +37,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      // 🔹 Crear usuario en Firebase Auth
       final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-      // 🔹 Crear documento en Firestore con el tipo de usuario
       await FirebaseFirestore.instance
           .collection('usuarios')
           .doc(credential.user!.uid)
           .set({
-        'email': _emailController.text.trim(),
+        'email': email,
         'tipo': _tipoUsuario,
+        'creado': Timestamp.now(),
       });
 
-      // 🔹 Redirigir al login
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/login');
       }
@@ -65,16 +67,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         title: const Text('Registro - VitalAI'),
         centerTitle: true,
+        backgroundColor: Colors.purple,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               const Text(
                 'Crear nueva cuenta',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
+
               const SizedBox(height: 30),
 
               TextField(
@@ -85,6 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: Icon(Icons.email),
                 ),
               ),
+
               const SizedBox(height: 20),
 
               TextField(
@@ -96,9 +104,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: Icon(Icons.lock),
                 ),
               ),
+
               const SizedBox(height: 20),
 
-              // 🔹 Selección del tipo de usuario
               DropdownButtonFormField<String>(
                 value: _tipoUsuario,
                 decoration: const InputDecoration(
@@ -106,49 +114,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   border: OutlineInputBorder(),
                 ),
                 items: const [
-                  DropdownMenuItem(
-                    value: 'donante',
-                    child: Text('Donante'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'revisor',
-                    child: Text('Revisor'),
-                  ),
+                  DropdownMenuItem(value: 'donante', child: Text('Donante')),
+                  DropdownMenuItem(value: 'revisor', child: Text('Revisor')),
                 ],
-                onChanged: (value) {
-                  setState(() {
-                    _tipoUsuario = value!;
-                  });
-                },
+                onChanged: (value) => setState(() => _tipoUsuario = value!),
               ),
+
               const SizedBox(height: 20),
 
               if (_error.isNotEmpty)
-                Text(
-                  _error,
-                  style: const TextStyle(color: Colors.red),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    _error,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               _loading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _register,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9C27B0),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 15, horizontal: 30),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  ? const Center(child: CircularProgressIndicator())
+                  : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _register,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Registrarse',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
+                        child: const Text(
+                          'Registrarse',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
                       ),
                     ),
             ],

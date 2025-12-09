@@ -22,6 +22,8 @@ dependencies:
   encrypt: ^5.0.1          # AES en Dart
   flutter_secure_storage: ^8.0.0
   location: ^6.0.1
+  flutter_reactive_ble: ^5.0.2
+  health: ^11.0.0
 
 dev_dependencies:
   flutter_test:

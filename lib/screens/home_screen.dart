@@ -36,7 +36,6 @@ class HomeScreen extends StatelessWidget {
       },
     );
 
-    // 🔍 Validar la clave ingresada
     if (result != null && result == _claveMonitor) {
       Navigator.pushNamed(context, '/monitor');
     } else if (result != null && result.isNotEmpty) {
@@ -63,22 +62,21 @@ class HomeScreen extends StatelessWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: [
-            _buildCard(context, Icons.favorite, "Presión Arterial", '/presion'),
-            _buildCard(context, Icons.monitor_heart, "Ritmo Cardíaco", '/ritmo'),
-            _buildCard(context, Icons.bedtime, "Sueño", '/sueno'),
-            _buildCard(context, Icons.bloodtype, "Oxígeno", '/oxigeno'),
-            _buildCard(context, Icons.sentiment_satisfied, "Estrés", '/estres'),
             _buildCard(context, Icons.person, "Formulario", '/formulario'),
             _buildBluetoothTestCard(context),
 
             // 🔹 Nuevo botón para el monitor (con contraseña)
             _buildMonitorCard(context),
+
+            // 🔹 Nuevo botón para historial de la BD
+            _buildCard(context, Icons.history, "Historial", '/historial'),
           ],
         ),
       ),
     );
   }
 
+  // 🔹 Card genérica
   Widget _buildCard(BuildContext context, IconData icon, String title, String route) {
     return InkWell(
       onTap: () => Navigator.pushNamed(context, route),
@@ -106,9 +104,7 @@ class HomeScreen extends StatelessWidget {
   // 🔹 Card para pruebas de Bluetooth
   Widget _buildBluetoothTestCard(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.pushNamed(context, '/bluetooth_test');
-      },
+      onTap: () => Navigator.pushNamed(context, '/bluetooth_test'),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 4,
@@ -130,7 +126,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Card para el monitor con contraseña
+  // 🔹 Card para Monitor (con contraseña)
   Widget _buildMonitorCard(BuildContext context) {
     return InkWell(
       onTap: () => _pedirClaveYEntrar(context),
