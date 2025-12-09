@@ -70,6 +70,9 @@ class HomeScreen extends StatelessWidget {
 
             // 🔹 Nuevo botón para historial de la BD
             _buildCard(context, Icons.history, "Historial", '/historial'),
+
+            // 🔹 NUEVO BOTÓN para ver participantes
+            _buildCard(context, Icons.group, "Participantes", '/participantes'),
           ],
         ),
       ),

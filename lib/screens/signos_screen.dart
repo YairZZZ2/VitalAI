@@ -2,9 +2,28 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class SignosScreen extends StatefulWidget {
-  const SignosScreen({super.key});
+  final String nombre;
+  final String apellidos;
+  final int edad;
+  final double altura;
+  final double peso;
+  final String resultado;
+  final String motivo;
+
+  const SignosScreen({
+    super.key,
+    required this.nombre,
+    required this.apellidos,
+    required this.edad,
+    required this.altura,
+    required this.peso,
+    required this.resultado,
+    required this.motivo,
+  });
 
   @override
   State<SignosScreen> createState() => _SignosScreenState();
@@ -21,8 +40,15 @@ class _SignosScreenState extends State<SignosScreen> {
   Timer? timer;
 
   Future<void> guardarSignosEnFirebase() async {
-  try {
+    try {
       await FirebaseFirestore.instance.collection('donaciones').add({
+        "nombre": widget.nombre,
+        "apellidos": widget.apellidos,
+        "edad": widget.edad,
+        "altura": widget.altura,
+        "peso": widget.peso,
+        "resultado": widget.resultado,
+        "motivo": widget.motivo,
         "ritmo_cardiaco": bpm,
         "oxigenacion": spo2,
         "presion_sistolica": sys,
@@ -30,9 +56,8 @@ class _SignosScreenState extends State<SignosScreen> {
         "temperatura": temp,
         "fecha": Timestamp.now(),
       });
-      // Feedback opcional
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Signos guardados en Firebase ✅")),
+        const SnackBar(content: Text("Resultados guardados en Firebase ✅")),
       );
     } catch (e) {
       print("Error al guardar signos: $e");
@@ -42,12 +67,44 @@ class _SignosScreenState extends State<SignosScreen> {
     }
   }
 
+  void imprimirResultadosPDF() async {
+    final pdf = pw.Document();
+    final fecha = DateTime.now();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text("RESULTADOS FORMULARIO DONACIÓN SANGUÍNEA",
+                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 20),
+            pw.Text("Nombre(s): ${widget.nombre}"),
+            pw.Text("Apellidos: ${widget.apellidos}"),
+            pw.Text("Edad: ${widget.edad}"),
+            pw.Text("Altura: ${widget.altura} m"),
+            pw.Text("Peso: ${widget.peso} kg"),
+            pw.Text("Resultado: ${widget.resultado}"),
+            if (widget.resultado != "APTO") pw.Text("Motivo: ${widget.motivo}"),
+            pw.SizedBox(height: 20),
+            pw.Text("Signos vitales:"),
+            pw.Text("- Ritmo cardiaco: $bpm BPM"),
+            pw.Text("- Oxigenación: $spo2%"),
+            pw.Text("- Presión arterial: $sys/$dia mmHg"),
+            pw.Text("- Temperatura: ${temp.toStringAsFixed(1)} °C"),
+            pw.SizedBox(height: 20),
+            pw.Text("FECHA: ${fecha.day}/${fecha.month}/${fecha.year}"),
+          ],
+        ),
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  }
 
   @override
   void initState() {
     super.initState();
-
-    // Simulación de datos cada 2s
     timer = Timer.periodic(const Duration(seconds: 2), (_) {
       setState(() {
         bpm = 70 + Random().nextInt(20);
@@ -125,7 +182,6 @@ class _SignosScreenState extends State<SignosScreen> {
 
             const SizedBox(height: 20),
 
-            // Tarjetas
             Expanded(
               child: ListView(
                 children: [
@@ -162,25 +218,36 @@ class _SignosScreenState extends State<SignosScreen> {
 
             const SizedBox(height: 10),
 
-            // Botón guardar en Firebase
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  guardarSignosEnFirebase(); // <-- aquí llamas al método que guarda
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  backgroundColor: Colors.deepPurpleAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: guardarSignosEnFirebase,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: Colors.deepPurpleAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text("Guardar en Firebase", style: TextStyle(fontSize: 18)),
                   ),
                 ),
-                child: const Text(
-                  "Guardar en Firebase",
-                  style: TextStyle(fontSize: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: imprimirResultadosPDF,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text("Imprimir PDF", style: TextStyle(fontSize: 18)),
+                  ),
                 ),
-              ),
+              ],
             )
           ],
         ),

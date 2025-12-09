@@ -11,6 +11,7 @@ import 'screens/formulario_screen.dart';
 import 'screens/bluetooth_test_screen.dart';
 import 'screens/signos_screen.dart';
 import 'screens/historial_screen.dart';
+import 'screens/participantes_screen.dart';
 
 // Login
 import 'screens/login_screen.dart';
@@ -55,7 +56,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'VitalAI',
       theme: AppTheme.lightTheme,
-
       initialRoute: '/login',
 
       routes: {
@@ -65,8 +65,28 @@ class MyApp extends StatelessWidget {
         '/formulario': (context) => DonacionWizardScreen(),
         '/bluetooth_test': (context) => const BluetoothTestScreen(),
         '/monitor': (context) => const MonitorScreen(),
-        '/signos': (context) => const SignosScreen(),
         '/historial': (context) => const HistorialScreen(),
+        '/participantes': (context) => const ParticipantesScreen(),
+      },
+
+      // Aquí manejamos la ruta de signos con argumentos
+      onGenerateRoute: (settings) {
+        if (settings.name == '/signos') {
+          final args = settings.arguments as Map<String, dynamic>?;
+
+          return MaterialPageRoute(
+            builder: (_) => SignosScreen(
+              nombre: args?['nombre'] ?? '',
+              apellidos: args?['apellidos'] ?? '',
+              edad: args?['edad'] ?? 0,
+              altura: args?['altura'] ?? 0.0,
+              peso: args?['peso'] ?? 0.0,
+              resultado: args?['resultado'] ?? 'NO APTO',
+              motivo: args?['motivo'] ?? '',
+            ),
+          );
+        }
+        return null;
       },
     );
   }

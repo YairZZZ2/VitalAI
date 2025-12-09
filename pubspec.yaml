@@ -10,20 +10,35 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  # Firebase
   firebase_core: ^3.4.1
   firebase_auth: ^5.3.2
   cloud_firestore: ^5.4.2
 
+  # UI y utilidades
   cupertino_icons: ^1.0.8
   provider: ^6.0.0
   shared_preferences: ^2.2.2
   permission_handler: ^12.0.1
+
+  # Bluetooth / BLE
   flutter_blue_plus: ^1.31.15
-  encrypt: ^5.0.1          # AES en Dart
-  flutter_secure_storage: ^8.0.0
-  location: ^6.0.1
   flutter_reactive_ble: ^5.0.2
+
+  # Seguridad y cifrado
+  encrypt: ^5.0.1
+  flutter_secure_storage: ^8.0.0
+
+  # Ubicación
+  location: ^6.0.1
+
+  # Health
   health: ^11.0.0
+
+  # PDF y Printing
+  pdf: ^3.11.0
+  printing: ^5.12.0
 
 dev_dependencies:
   flutter_test:
