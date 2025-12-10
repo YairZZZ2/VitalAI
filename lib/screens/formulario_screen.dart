@@ -44,7 +44,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
   bool lactando = false;
   bool parir = false;
   bool carcinomaAlta = false;
-  bool desayuno = true;           // true = sí desayunó
+  bool desayuno = true;
   bool donacionReciente = false;
   bool viajesRiesgo = false;
   bool enfermedadesGraves = false;
@@ -52,7 +52,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
   bool anticoagulantes = false;
   bool teratogenicos = false;
   bool vacunasRecientes = false;
-  bool estadoActual = true;       // true = se siente bien
+  bool estadoActual = true;
 
   // Resultado y motivo
   String resultadoTexto = "";
@@ -71,13 +71,52 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
     }
   }
 
+  // ---------- AVISO DE PRIVACIDAD ----------
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _mostrarAvisoPrivacidad(context);
+    });
+  }
+
+  Future<void> _mostrarAvisoPrivacidad(BuildContext context) async {
+    final aceptado = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // 👈 obliga a elegir
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Aviso de Privacidad"),
+          content: const Text(
+            "La información que proporciones en este formulario será utilizada únicamente con fines clínicos y de investigación. "
+            "Tus datos serán tratados de manera confidencial conforme a las políticas de privacidad.\n\n"
+            "¿Aceptas estas condiciones?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("No aceptar"),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Aceptar"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (aceptado == false) {
+      Navigator.pop(context); // 👈 si no acepta, regresa a la pantalla anterior
+    }
+  }
+
   // ---------- VALIDACIÓN / EVALUACIÓN ----------
   void evaluarElegibilidad() {
     int? edad = int.tryParse(edadCtrl.text);
     double? peso = double.tryParse(pesoCtrl.text);
     double? altura = double.tryParse(alturaCtrl.text);
 
-    // Básicos
     if (edad == null || peso == null || altura == null) {
       motivoNoApto = "Datos incompletos o inválidos (edad, peso, altura)";
       _mostrarResultadoDialog(false, motivoNoApto);
@@ -485,7 +524,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                               onChanged: (v) => setState(() => enfermedadesGraves = v),
                             ),
                             SwitchListTile(
-                              title: const Text("¿Ha recibido una transfusión de sangre en los últimos 4-6 meses?"),
+                              title: const Text("¿Ha recibido una transfusión de sangre en los últimos 12 meses?"),
                               value: transfusionReciente,
                               onChanged: (v) => setState(() => transfusionReciente = v),
                             ),

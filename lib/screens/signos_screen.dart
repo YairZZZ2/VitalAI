@@ -30,7 +30,7 @@ class SignosScreen extends StatefulWidget {
 }
 
 class _SignosScreenState extends State<SignosScreen> {
-  // Valores simulados
+  // 🔹 Valores simulados
   int bpm = 75;
   int spo2 = 98;
   int sys = 120;
@@ -39,6 +39,7 @@ class _SignosScreenState extends State<SignosScreen> {
 
   Timer? timer;
 
+  // 🔹 Guardar en Firebase
   Future<void> guardarSignosEnFirebase() async {
     try {
       await FirebaseFirestore.instance.collection('donaciones').add({
@@ -56,6 +57,7 @@ class _SignosScreenState extends State<SignosScreen> {
         "temperatura": temp,
         "fecha": Timestamp.now(),
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Resultados guardados en Firebase ✅")),
       );
@@ -67,6 +69,7 @@ class _SignosScreenState extends State<SignosScreen> {
     }
   }
 
+  // 🔹 Generar PDF
   void imprimirResultadosPDF() async {
     final pdf = pw.Document();
     final fecha = DateTime.now();
@@ -76,8 +79,10 @@ class _SignosScreenState extends State<SignosScreen> {
         build: (pw.Context context) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text("RESULTADOS FORMULARIO DONACIÓN SANGUÍNEA",
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+            pw.Text(
+              "RESULTADOS FORMULARIO DONACIÓN SANGUÍNEA",
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            ),
             pw.SizedBox(height: 20),
             pw.Text("Nombre(s): ${widget.nombre}"),
             pw.Text("Apellidos: ${widget.apellidos}"),
@@ -102,16 +107,17 @@ class _SignosScreenState extends State<SignosScreen> {
     await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
+  // 🔹 Ciclo de simulación
   @override
   void initState() {
     super.initState();
     timer = Timer.periodic(const Duration(seconds: 2), (_) {
       setState(() {
-        bpm = 70 + Random().nextInt(20);
-        spo2 = 96 + Random().nextInt(4);
-        sys = 110 + Random().nextInt(15);
-        dia = 70 + Random().nextInt(15);
-        temp = 36.5 + Random().nextDouble();
+        bpm = 70 + Random().nextInt(40);   // 70–89
+        spo2 = 96 + Random().nextInt(4);   // 96–99
+        sys = 110 + Random().nextInt(15);  // 110–124
+        dia = 70 + Random().nextInt(15);   // 70–84
+        temp = 36.5 + Random().nextDouble(); // 36.5–37.5
       });
     });
   }
@@ -122,6 +128,7 @@ class _SignosScreenState extends State<SignosScreen> {
     super.dispose();
   }
 
+  // 🔹 Widget para cada tarjeta
   Widget _card({
     required String title,
     required String value,
@@ -141,17 +148,21 @@ class _SignosScreenState extends State<SignosScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade800)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade800,
+                ),
+              ),
               Text(
                 value,
                 style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade900),
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade900,
+                ),
               ),
             ],
           )
@@ -160,6 +171,7 @@ class _SignosScreenState extends State<SignosScreen> {
     );
   }
 
+  // 🔹 UI principal
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,12 +186,8 @@ class _SignosScreenState extends State<SignosScreen> {
           children: [
             const Text(
               "Valores en tiempo real",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 20),
 
             Expanded(
@@ -230,7 +238,10 @@ class _SignosScreenState extends State<SignosScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text("Guardar en Firebase", style: TextStyle(fontSize: 18)),
+                    child: const Text(
+                      "Guardar en Firebase",
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -244,7 +255,10 @@ class _SignosScreenState extends State<SignosScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text("Imprimir PDF", style: TextStyle(fontSize: 18)),
+                    child: const Text(
+                      "Imprimir PDF",
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
                 ),
               ],
