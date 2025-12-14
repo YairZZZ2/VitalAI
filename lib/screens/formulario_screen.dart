@@ -390,12 +390,12 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                       const SizedBox(height: 8),
                       _campoTexto(alturaCtrl, "Altura (mts) (ej. 1.75)", keyboard: TextInputType.number),
                       const SizedBox(height: 8),
-                      const Text("Sexo:", style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text("Género:", style: TextStyle(fontWeight: FontWeight.bold)),
                       Row(
                         children: [
                           Expanded(
                             child: RadioListTile<String>(
-                              title: const Text("M"),
+                              title: const Text("Masculino"),
                               value: "Masculino",
                               groupValue: sexo,
                               onChanged: (v) => setState(() => sexo = v!),
@@ -403,16 +403,8 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                           ),
                           Expanded(
                             child: RadioListTile<String>(
-                              title: const Text("F"),
+                              title: const Text("Femenino"),
                               value: "Femenino",
-                              groupValue: sexo,
-                              onChanged: (v) => setState(() => sexo = v!),
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<String>(
-                              title: const Text("O"),
-                              value: "Otro",
                               groupValue: sexo,
                               onChanged: (v) => setState(() => sexo = v!),
                             ),
@@ -514,7 +506,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                               onChanged: (v) => setState(() => donacionReciente = v),
                             ),
                             SwitchListTile(
-                              title: const Text("¿Ha viajado o vivido en zona de riesgo (Malaria, Zika, Chagas) en los últimos 4 meses?"),
+                              title: const Text("¿Ha viajado o vivido en zonas endemicas (Malaria, Zika, Chagas) en los últimos 4 meses?"),
                               value: viajesRiesgo,
                               onChanged: (v) => setState(() => viajesRiesgo = v),
                             ),
@@ -583,7 +575,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                         ],
                       ),
                       SwitchListTile(
-                        title: const Text("¿Bebiste alcohol/mezcal en las últimas 48 horas?"),
+                        title: const Text("¿Bebiste alcohol en las últimas 72 horas?"),
                         value: alcohol,
                         onChanged: (v) => setState(() => alcohol = v),
                       ),

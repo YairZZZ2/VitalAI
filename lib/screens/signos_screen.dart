@@ -44,7 +44,8 @@ class _SignosScreenState extends State<SignosScreen> {
     try {
       await FirebaseFirestore.instance.collection('donaciones').add({
         "nombre": widget.nombre,
-        "apellidos": widget.apellidos,
+        "apellido_paterno": widget.apellidos,
+        "apellido_materno": widget.apellidos,
         "edad": widget.edad,
         "altura": widget.altura,
         "peso": widget.peso,
