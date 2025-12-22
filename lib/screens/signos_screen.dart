@@ -114,7 +114,7 @@ class _SignosScreenState extends State<SignosScreen> {
     super.initState();
     timer = Timer.periodic(const Duration(seconds: 2), (_) {
       setState(() {
-        bpm = 70 + Random().nextInt(40);   // 70–89
+        bpm = 70 + Random().nextInt(40);   // 70–109
         spo2 = 96 + Random().nextInt(4);   // 96–99
         sys = 110 + Random().nextInt(15);  // 110–124
         dia = 70 + Random().nextInt(15);   // 70–84
