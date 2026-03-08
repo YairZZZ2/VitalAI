@@ -40,9 +40,15 @@ class _SignosScreenState extends State<SignosScreen> {
   Timer? timer;
 
   // 🔹 Guardar en Firebase
-  Future<void> guardarSignosEnFirebase() async {
+ Future<void> guardarSignosEnFirebase() async {
     try {
-      await FirebaseFirestore.instance.collection('donaciones').add({
+
+      String id = "${widget.nombre}_${DateTime.now().millisecondsSinceEpoch}";
+
+      await FirebaseFirestore.instance
+          .collection('donaciones')
+          .doc(id)
+          .set({
         "nombre": widget.nombre,
         "apellido_paterno": widget.apellidos,
         "apellido_materno": widget.apellidos,
@@ -62,6 +68,7 @@ class _SignosScreenState extends State<SignosScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Resultados guardados en Firebase ✅")),
       );
+
     } catch (e) {
       print("Error al guardar signos: $e");
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,51 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  // 🔒 Contraseña exclusiva para encargados del monitor
-  static const String _claveMonitor = "VitalAI2025";
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-  // 🔹 Función para pedir la clave antes de entrar al monitor
-  Future<void> _pedirClaveYEntrar(BuildContext context) async {
-    String? claveIngresada = '';
+class _HomeScreenState extends State<HomeScreen> {
 
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Acceso restringido"),
-          content: TextField(
-            obscureText: true,
-            onChanged: (value) => claveIngresada = value,
-            decoration: const InputDecoration(
-              hintText: "Ingresa la contraseña de encargado",
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, claveIngresada),
-              child: const Text("Aceptar"),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, null),
-              child: const Text("Cancelar"),
-            ),
-          ],
-        );
-      },
-    );
+  String tipoUsuario = "";
 
-    if (result != null && result == _claveMonitor) {
-      Navigator.pushNamed(context, '/monitor');
-    } else if (result != null && result.isNotEmpty) {
+  // 🔹 Obtener el rol del usuario desde Firestore
+  Future<void> obtenerTipoUsuario() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(uid)
+        .get();
+
+    setState(() {
+      tipoUsuario = doc['tipo'];
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    obtenerTipoUsuario();
+  }
+
+  // 🔹 Función para entrar al monitor
+  Future<void> _entrarMonitor(BuildContext context) async {
+
+    // 🔒 Verificar rol
+    if (tipoUsuario != "revisor") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Contraseña incorrecta ❌"),
+          content: Text("El rol actual no te permite ingresar a esta opción."),
           backgroundColor: Colors.redAccent,
         ),
       );
+      return;
     }
+
+    Navigator.pushNamed(context, '/monitor');
   }
 
   @override
@@ -62,17 +64,18 @@ class HomeScreen extends StatelessWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: [
+
             _buildCard(context, Icons.person, "Formulario", '/formulario'),
+
             _buildBluetoothTestCard(context),
 
-            // 🔹 Nuevo botón para el monitor (con contraseña)
+            // 🔹 Monitor (ahora verifica rol)
             _buildMonitorCard(context),
 
-            // 🔹 Nuevo botón para historial de la BD
             _buildCard(context, Icons.history, "Historial", '/historial'),
 
-            // 🔹 NUEVO BOTÓN para ver participantes
             _buildCard(context, Icons.group, "Participantes", '/participantes'),
+
           ],
         ),
       ),
@@ -129,10 +132,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Card para Monitor (con contraseña)
+  // 🔹 Card para Monitor
   Widget _buildMonitorCard(BuildContext context) {
     return InkWell(
-      onTap: () => _pedirClaveYEntrar(context),
+      onTap: () => _entrarMonitor(context),
       child: Card(
         color: const Color(0xFFEDE7F6),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

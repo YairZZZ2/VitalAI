@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'chatbot_screen.dart';
+import 'package:mi_primer_app/widgets/chatbot_icon.dart';
 
 class DonacionWizardScreen extends StatefulWidget {
   const DonacionWizardScreen({super.key});
@@ -9,6 +11,12 @@ class DonacionWizardScreen extends StatefulWidget {
 }
 
 class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
+  EstadoEmocional get estadoChatbot {
+    if (resultadoTexto.contains("Apto")) return EstadoEmocional.feliz;
+    if (resultadoTexto.contains("No Apto") || resultadoTexto.contains("fuera del rango")) return EstadoEmocional.preocupado;
+    return EstadoEmocional.neutral;
+  }
+  
   final PageController _pageController = PageController();
   int _pageIndex = 0;
 
@@ -277,7 +285,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
     _mostrarResultadoDialog(true, "🎉 ¡Felicidades, eres apto/a para donar sangre!");
     setState(() => resultadoTexto = "Apto para donar.");
   }
-  // ---------- FIRESTORE: GUARDAR DATOS ----------
+
   Future<void> guardarDatosEnFirebase() async {
     try {
       await FirebaseFirestore.instance.collection('donaciones').add({
@@ -289,8 +297,8 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
         "altura": double.tryParse(alturaCtrl.text),
         "sexo": sexo,
         "fecha": Timestamp.now(),
-        "resultado": resultadoTexto,   // "Apto para donar." o motivo
-        "motivo": motivoNoApto,        // vacío si es apto; texto específico si no
+        "resultado": resultadoTexto,
+        "motivo": motivoNoApto,
       });
     } catch (e) {
       print("Error al guardar datos en Firestore: $e");
@@ -313,7 +321,6 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
     );
   }
 
-  // ---------- WIDGETS REUTILIZABLES ----------
   Widget _campoTexto(TextEditingController c, String label, {TextInputType keyboard = TextInputType.text}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -584,6 +591,7 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                         value: desayuno,
                         onChanged: (v) => setState(() => desayuno = v),
                       ),
+                      
                       const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -609,27 +617,12 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                       _seccionTitulo("Resultado"),
                       const Text("Revisa tus respuestas y presiona Evaluar para obtener el resultado final.", style: TextStyle(fontSize: 14)),
                       const SizedBox(height: 12),
-                      Card(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Nombre: ${apPaternoCtrl.text} ${apMaternoCtrl.text} ${nombresCtrl.text}"),
-                              Text("Edad: ${edadCtrl.text}"),
-                              Text("Peso: ${pesoCtrl.text} kg"),
-                              Text("Altura: ${alturaCtrl.text} m"),
-                              Text("Sexo: $sexo"),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9C27B0), padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF9C27B0),
+                            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                          ),
                           onPressed: () {
                             evaluarElegibilidad();
                             guardarDatosEnFirebase();
@@ -642,31 +635,6 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
                         Center(
                           child: Text(resultadoTexto, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                         ),
-                      const SizedBox(height: 30),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          OutlinedButton(onPressed: _previousPage, child: const Text("Atrás")),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pushNamed(
-                                '/signos',
-                                arguments: {
-                                  "nombre": nombresCtrl.text.trim(),
-                                  "apellidos": "${apPaternoCtrl.text.trim()} ${apMaternoCtrl.text.trim()}",
-                                  "edad": int.tryParse(edadCtrl.text) ?? 0,
-                                  "altura": double.tryParse(alturaCtrl.text) ?? 0.0,
-                                  "peso": double.tryParse(pesoCtrl.text) ?? 0.0,
-                                  "resultado": (resultadoTexto.toLowerCase().contains("apto")) ? "APTO" : "NO APTO",
-                                  "motivo": motivoNoApto,
-                                },
-                              );
-                            },
-                            child: const Text("Finalizar"),
-                          ),
-
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -675,6 +643,44 @@ class _DonacionWizardScreenState extends State<DonacionWizardScreen> {
           ),
         ],
       ),
+
+      // --------------------- BOTÓN FLOTANTE CHATBOT ---------------------
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+floatingActionButton: GestureDetector(
+  onTap: () async {
+    final result = await Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (_, __, ___) => ChatbotScreen(
+          nombre: nombresCtrl.text.trim(),
+          apellidos: "${apPaternoCtrl.text.trim()} ${apMaternoCtrl.text.trim()}",
+          edad: int.tryParse(edadCtrl.text) ?? 0,
+          peso: double.tryParse(pesoCtrl.text) ?? 0.0,
+          altura: double.tryParse(alturaCtrl.text) ?? 0.0,
+          resultado: resultadoTexto,
+          motivo: motivoNoApto,
+        ),
+        transitionsBuilder: (_, animation, __, child) {
+          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
+          return ScaleTransition(
+            scale: curved,
+            child: child,
+          );
+        },
+      ),
+    );
+
+    if (result != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("El chatbot dice: $result")),
+      );
+    }
+  },
+  child: ChatbotIcon(
+    estado: estadoChatbot,
+  ),
+),
     );
   }
 }

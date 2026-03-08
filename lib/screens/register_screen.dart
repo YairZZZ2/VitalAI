@@ -13,9 +13,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // 🔹 NUEVO controlador para clave de revisor
+  final TextEditingController _revisorPasswordController = TextEditingController();
+
   String _tipoUsuario = 'donante';
   bool _loading = false;
   String _error = '';
+
+  // 🔹 Clave especial para revisores
+  final String _claveRevisor = "REV123";
 
   Future<void> _register() async {
     if (_emailController.text.trim().isEmpty ||
@@ -28,6 +34,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _loading = true;
       _error = '';
     });
+
+    // 🔹 Validar clave de revisor
+    if (_tipoUsuario == 'revisor') {
+      if (_revisorPasswordController.text.trim() != _claveRevisor) {
+        setState(() {
+          _loading = false;
+          _error = "Clave de revisor incorrecta.";
+        });
+        return;
+      }
+    }
 
     try {
       // 🔹 Crear usuario en Firebase Auth
@@ -122,6 +139,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 20),
+
+              // 🔹 Campo que aparece SOLO si elige revisor
+              if (_tipoUsuario == 'revisor') ...[
+                TextField(
+                  controller: _revisorPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Clave de autorización de revisor',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.security),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
 
               if (_error.isNotEmpty)
                 Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,15 +28,28 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      // 🔹 Siempre lleva al Home después del login
+      // 🔹 Obtener rol desde Firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(credential.user!.uid)
+          .get();
+
+      String tipoUsuario = doc['tipo'];
+
+      // 🔹 Redireccionar según el rol
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        if (tipoUsuario == "donante") {
+          Navigator.pushReplacementNamed(context, '/formulario');
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       }
+
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message ?? "Error al iniciar sesión.";
